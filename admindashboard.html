@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Java Fresher Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-purple-100 font-sans min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md px-6 py-4 flex justify-between items-center">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center font-bold text-indigo-600">BR</div>
+      <h1 class="text-xl font-bold"> Admin Dashboard</h1>
+    </div>
+    <nav class="hidden md:flex gap-6 font-semibold">
+      <a href="#" class="hover:underline">Home</a>
+      <a href="#" class="hover:underline text-red-200">Logout</a>
+    </nav>
+    <button class="md:hidden text-white text-2xl" id="menuBtn">☰</button>
+  </header>
+
+  <!-- Body Layout -->
+  <div class="flex flex-col md:flex-row">
+    <!-- Sidebar -->
+    <aside class="bg-white w-full md:w-64 md:min-h-screen p-4 shadow-md hidden md:block">
+      <ul class="space-y-3 font-semibold text-gray-700">
+        <li><button onclick="showPage('dashboard')" class="w-full text-left p-2 rounded hover:bg-indigo-100 bg-indigo-100">Dashboard</button></li>
+        <li><button onclick="showPage('manageJobs')" class="w-full text-left p-2 rounded hover:bg-indigo-100">Manage Jobs</button></li>
+        <li><button class="w-full text-left p-2 rounded hover:bg-indigo-100">Manage Users</button></li>
+        <li><button class="w-full text-left p-2 rounded hover:bg-indigo-100">Applications</button></li>
+        <li><button class="w-full text-left p-2 rounded hover:bg-indigo-100">Reports</button></li>
+      </ul>
+    </aside>
+
+    <!-- Mobile Sidebar -->
+    <div id="mobileMenu" class="md:hidden bg-white p-4 hidden">
+      <ul class="space-y-3 font-semibold text-gray-700">
+        <li><button onclick="showPage('dashboard')" class="w-full text-left p-2 rounded hover:bg-indigo-100 bg-indigo-100">Dashboard</button></li>
+        <li><button onclick="showPage('manageJobs')" class="w-full text-left p-2 rounded hover:bg-indigo-100">Manage Jobs</button></li>
+      </ul>
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-6">
+      <!-- Dashboard Page -->
+      <section id="dashboardPage">
+        <h2 class="text-2xl font-bold text-indigo-700 mb-6">Dashboard Overview</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div class="bg-gradient-to-r from-blue-400 to-blue-600 text-white p-5 rounded-lg shadow-md">
+            <h3 class="text-lg">Students</h3>
+            <p class="text-3xl font-bold">974,839+</p>
+          </div>
+          <div class="bg-gradient-to-r from-green-400 to-green-600 text-white p-5 rounded-lg shadow-md">
+            <h3 class="text-lg">Job Posts</h3>
+            <p class="text-3xl font-bold">974,839+</p>
+          </div>
+          <div class="bg-gradient-to-r from-pink-400 to-pink-600 text-white p-5 rounded-lg shadow-md">
+            <h3 class="text-lg">Companies</h3>
+            <p class="text-3xl font-bold">974,839+</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Manage Jobs Page -->
+      <section id="manageJobsPage" class="hidden">
+        <h2 class="text-2xl font-bold text-indigo-700 mb-4">Manage Job Posts</h2>
+
+        <!-- Create Job Form -->
+        <div class="bg-white p-4 rounded-lg shadow mb-6">
+          <form id="jobForm" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <input type="hidden" id="editIndex" />
+            <input id="title" type="text" placeholder="Job Title" class="p-2 border rounded" required />
+            <input id="company" type="text" placeholder="Company Name" class="p-2 border rounded" required />
+            <input id="location" type="text" placeholder="Location" class="p-2 border rounded" required />
+            <input id="ctc" type="text" placeholder="CTC" class="p-2 border rounded" required />
+            <button type="submit" class="bg-indigo-600 text-white py-2 rounded col-span-1 md:col-span-3 hover:bg-indigo-700 transition">Save Job</button>
+          </form>
+        </div>
+
+        <!-- Job List -->
+        <div id="jobList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Script for Navigation + CRUD -->
+  <script>
+    const dashboardPage = document.getElementById("dashboardPage");
+    const manageJobsPage = document.getElementById("manageJobsPage");
+
+    function showPage(page) {
+      dashboardPage.classList.add("hidden");
+      manageJobsPage.classList.add("hidden");
+
+      if (page === "dashboard") {
+        dashboardPage.classList.remove("hidden");
+      } else if (page === "manageJobs") {
+        manageJobsPage.classList.remove("hidden");
+      }
+    }
+
+    document.getElementById('menuBtn').addEventListener('click', () => {
+      document.getElementById('mobileMenu').classList.toggle('hidden');
+    });
+
+    // CRUD Functionality
+    const jobForm = document.getElementById('jobForm');
+    const jobList = document.getElementById('jobList');
+    const title = document.getElementById('title');
+    const company = document.getElementById('company');
+    const location = document.getElementById('location');
+    const ctc = document.getElementById('ctc');
+    const editIndex = document.getElementById('editIndex');
+
+    let jobs = [];
+
+    function renderJobs() {
+      jobList.innerHTML = '';
+      jobs.forEach((job, index) => {
+        jobList.innerHTML += `
+          <div class="bg-white p-4 rounded shadow border-l-4 border-indigo-500">
+            <h3 class="text-lg font-bold text-indigo-700">${job.title}</h3>
+            <p><strong>Company:</strong> ${job.company}</p>
+            <p><strong>Location:</strong> ${job.location}</p>
+            <p><strong>CTC:</strong> ${job.ctc}</p>
+            <div class="mt-3 flex space-x-2">
+              <button onclick="editJob(${index})" class="px-3 py-1 text-sm bg-yellow-400 hover:bg-yellow-500 text-white rounded">Edit</button>
+              <button onclick="deleteJob(${index})" class="px-3 py-1 text-sm bg-red-500 hover:bg-red-600 text-white rounded">Delete</button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function editJob(index) {
+      const job = jobs[index];
+      title.value = job.title;
+      company.value = job.company;
+      location.value = job.location;
+      ctc.value = job.ctc;
+      editIndex.value = index;
+    }
+
+    function deleteJob(index) {
+      if (confirm("Are you sure?")) {
+        jobs.splice(index, 1);
+        renderJobs();
+      }
+    }
+
+    jobForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const jobData = {
+        title: title.value.trim(),
+        company: company.value.trim(),
+        location: location.value.trim(),
+        ctc: ctc.value.trim()
+      };
+
+      const index = editIndex.value;
+      if (index === '') {
+        jobs.push(jobData); // Create
+      } else {
+        jobs[index] = jobData; // Update
+        editIndex.value = '';
+      }
+
+      jobForm.reset();
+      renderJobs();
+    });
+
+    // Load dashboard by default
+    showPage('dashboard');
+  </script>
+</body>
+</html>

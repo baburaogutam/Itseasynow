@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Students | Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-purple-100 font-sans min-h-screen">
+
+  <!-- Navbar -->
+  <header class="bg-indigo-600 text-white px-6 py-4 flex justify-between items-center shadow">
+    <h1 class="text-2xl font-bold">Student Management</h1>
+    <nav class="space-x-6 text-sm">
+      <a href="index.html" class="hover:underline">Home</a>
+      <a href="students.html" class="font-semibold underline">Students</a>
+      <a href="manage-jobs.html" class="hover:underline">Jobs</a>
+      <a href="#" class="text-red-200 hover:underline">Logout</a>
+    </nav>
+  </header>
+
+  <!-- Main Content -->
+  <main class="p-6 space-y-6">
+    <h2 class="text-xl font-semibold text-indigo-700">All Students</h2>
+
+    <!-- Search & Export -->
+    <div class="flex flex-col md:flex-row md:items-center gap-4">
+      <div class="flex gap-2 flex-1">
+        <select id="searchField" class="p-2 rounded border border-indigo-300 bg-white shadow w-48">
+          <option value="name">Search by Name</option>
+          <option value="email">Search by Email</option>
+          <option value="contact">Search by Contact</option>
+        </select>
+        <input id="searchInput" type="text" placeholder="Search students..." class="p-2 border border-indigo-300 rounded w-full shadow" />
+      </div>
+      <button onclick="exportData()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded shadow">
+        Export Data
+      </button>
+    </div>
+
+    <!-- Student Table -->
+    <div class="overflow-x-auto bg-white rounded-lg shadow">
+      <table class="min-w-full text-sm">
+        <thead class="bg-indigo-100 text-indigo-700">
+          <tr>
+            <th class="px-4 py-3 text-left">Photo</th>
+            <th class="px-4 py-3 text-left cursor-pointer" onclick="sortBy('name')">Name ⬍</th>
+            <th class="px-4 py-3 text-left cursor-pointer" onclick="sortBy('email')">Email ⬍</th>
+            <th class="px-4 py-3 text-left">Contact</th>
+            <th class="px-4 py-3 text-left">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="studentTable" class="text-gray-700"></tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex justify-between items-center text-sm text-indigo-600 mt-4">
+      <button id="prevPage" class="px-4 py-1 bg-indigo-100 rounded hover:bg-indigo-200">Previous</button>
+      <span id="pageInfo">Page 1</span>
+      <button id="nextPage" class="px-4 py-1 bg-indigo-100 rounded hover:bg-indigo-200">Next</button>
+    </div>
+  </main>
+
+  <!-- Script -->
+  <script>
+    const studentTable = document.getElementById('studentTable');
+    const searchInput = document.getElementById('searchInput');
+    const searchField = document.getElementById('searchField');
+    const pageInfo = document.getElementById('pageInfo');
+    const prevPage = document.getElementById('prevPage');
+    const nextPage = document.getElementById('nextPage');
+
+    let students = [
+      { name: "Aman Verma", email: "aman@example.com", contact: "9876543210", education: "B.Tech - 2023", photo: "https://i.pravatar.cc/150?img=3" },
+      { name: "Sneha Rao", email: "sneha@example.com", contact: "9123456789", education: "MCA - 2022", photo: "https://i.pravatar.cc/150?img=5" },
+      { name: "Ravi Kumar", email: "ravi@example.com", contact: "9988776655", education: "MBA - 2021", photo: "https://i.pravatar.cc/150?img=7" },
+      { name: "Divya Sharma", email: "divya@example.com", contact: "9000000001", education: "BCA - 2023", photo: "https://i.pravatar.cc/150?img=11" },
+      { name: "Krishna R", email: "krishna@example.com", contact: "9888888888", education: "M.Sc - 2020", photo: "https://i.pravatar.cc/150?img=12" },
+      { name: "Zoya Ali", email: "zoya@example.com", contact: "9112233445", education: "BBA - 2022", photo: "https://i.pravatar.cc/150?img=14" }
+    ];
+
+    let currentPage = 1;
+    const studentsPerPage = 5;
+    let currentSortField = null;
+    let currentSortAsc = true;
+
+    function renderStudents(filter = '') {
+      const field = searchField.value;
+      let filtered = students.filter(student => student[field].toLowerCase().includes(filter.toLowerCase()));
+
+      if (currentSortField) {
+        filtered.sort((a, b) => {
+          if (a[currentSortField] < b[currentSortField]) return currentSortAsc ? -1 : 1;
+          if (a[currentSortField] > b[currentSortField]) return currentSortAsc ? 1 : -1;
+          return 0;
+        });
+      }
+
+      const totalPages = Math.ceil(filtered.length / studentsPerPage);
+      if (currentPage > totalPages) currentPage = totalPages || 1;
+
+      const start = (currentPage - 1) * studentsPerPage;
+      const visibleStudents = filtered.slice(start, start + studentsPerPage);
+
+      studentTable.innerHTML = '';
+      visibleStudents.forEach((student, index) => {
+        studentTable.innerHTML += `
+          <tr class="border-t border-indigo-100 hover:bg-indigo-50">
+            <td class="px-4 py-3"><img src="${student.photo}" class="w-10 h-10 rounded-full"/></td>
+            <td class="px-4 py-3">${student.name}</td>
+            <td class="px-4 py-3 truncate max-w-[200px]">${student.email}</td>
+            <td class="px-4 py-3">${student.contact}</td>
+            <td class="px-4 py-3">
+              <div class="flex flex-wrap gap-2">
+                <a href="profile.html?id=${index}" class="bg-indigo-500 text-white px-3 py-1 rounded text-xs">View</a>
+                <button onclick="deleteStudent(${index})" class="bg-red-500 text-white px-3 py-1 rounded text-xs">Delete</button>
+              </div>
+            </td>
+          </tr>`;
+      });
+
+      pageInfo.textContent = `Page ${currentPage} of ${totalPages || 1}`;
+      prevPage.disabled = currentPage === 1;
+      nextPage.disabled = currentPage === totalPages;
+    }
+
+    function sortBy(field) {
+      if (currentSortField === field) {
+        currentSortAsc = !currentSortAsc;
+      } else {
+        currentSortField = field;
+        currentSortAsc = true;
+      }
+      renderStudents(searchInput.value);
+    }
+
+    function deleteStudent(index) {
+      if (confirm('Delete this student?')) {
+        students.splice(index, 1);
+        renderStudents(searchInput.value);
+      }
+    }
+
+    function exportData() {
+      const csv = ["Name,Email,Contact,Education"];
+      students.forEach(s => {
+        csv.push(`"${s.name}","${s.email}","${s.contact}","${s.education}"`);
+      });
+      const blob = new Blob([csv.join("\n")], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "students.csv";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    searchInput.addEventListener('input', () => renderStudents(searchInput.value));
+    prevPage.addEventListener('click', () => { currentPage--; renderStudents(searchInput.value); });
+    nextPage.addEventListener('click', () => { currentPage++; renderStudents(searchInput.value); });
+
+    renderStudents();
+  </script>
+</body>
+</html>

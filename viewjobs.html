@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Job Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+
+  <!-- Header -->
+  <header class="bg-white shadow p-4">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <h1 class="text-2xl font-bold text-indigo-600">JobPortal</h1>
+      <nav>
+        <ul class="flex space-x-4 text-gray-700 font-medium">
+          <li><a href="#" class="hover:text-indigo-600">Home</a></li>
+          <li><a href="#" class="hover:text-indigo-600">Jobs</a></li>
+          <li><a href="#" class="hover:text-indigo-600">Login</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Search & Filter -->
+  <section class="bg-white py-4">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center gap-4">
+      <input type="text" id="searchInput" placeholder="Search jobs..."
+        class="w-full md:w-1/2 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+      <select id="categoryFilter" class="w-full md:w-1/4 px-4 py-2 border border-gray-300 rounded-lg">
+        <option value="">All Categories</option>
+        <option value="developer">Developer</option>
+        <option value="designer">Designer</option>
+        <option value="manager">Manager</option>
+      </select>
+    </div>
+  </section>
+
+  <!-- Job Listings -->
+  <main class="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="jobList">
+    <!-- Jobs will be injected here -->
+  </main>
+
+  <script>
+    const jobs = [
+      { title: "Frontend Developer", company: "TechCorp", category: "developer" },
+      { title: "UI/UX Designer", company: "Designify", category: "designer" },
+      { title: "Project Manager", company: "BuildIt", category: "manager" },
+      { title: "Backend Developer", company: "DataStack", category: "developer" },
+    ];
+
+    const jobList = document.getElementById('jobList');
+    const searchInput = document.getElementById('searchInput');
+    const categoryFilter = document.getElementById('categoryFilter');
+
+    function renderJobs(filter = "") {
+      const searchText = searchInput.value.toLowerCase();
+      jobList.innerHTML = "";
+      const filteredJobs = jobs.filter(job =>
+        (job.title.toLowerCase().includes(searchText) || job.company.toLowerCase().includes(searchText)) &&
+        (filter === "" || job.category === filter)
+      );
+      filteredJobs.forEach(job => {
+        jobList.innerHTML += `
+          <div class="bg-white shadow-md rounded-lg p-4">
+            <h2 class="text-xl font-semibold text-indigo-600">${job.title}</h2>
+            <p class="text-gray-700">${job.company}</p>
+            <span class="text-sm text-gray-500 capitalize">${job.category}</span>
+            <button class="mt-4 w-full bg-indigo-600 text-white py-2 px-4 rounded hover:bg-indigo-700">Apply Now</button>
+          </div>
+        `;
+      });
+    }
+
+    // Initial render
+    renderJobs();
+
+    searchInput.addEventListener("input", () => renderJobs(categoryFilter.value));
+    categoryFilter.addEventListener("change", () => renderJobs(categoryFilter.value));
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Companies | Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-purple-100 to-blue-100 font-sans min-h-screen">
+
+  <!-- Navbar -->
+  <header class="bg-indigo-600 text-white px-6 py-4 flex justify-between items-center shadow">
+    <h1 class="text-2xl font-bold">Companies</h1>
+    <nav class="space-x-6 text-sm">
+      <a href="index.html" class="hover:underline">Home</a>
+      <a href="job-list.html" class="hover:underline">Students</a>
+      <a href="companies.html" class="font-semibold underline">Companies</a>
+      <a href="manage-jobs.html" class="hover:underline">Jobs</a>
+      <a href="#" class="text-red-200 hover:underline">Logout</a>
+    </nav>
+  </header>
+
+  <main class="p-6 space-y-6">
+    <div class="flex justify-between items-center">
+      <h2 class="text-xl font-semibold text-indigo-700">All Companies</h2>
+      <button onclick="exportData()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded shadow">
+        Export CSV
+      </button>
+    </div>
+
+    <!-- Search -->
+    <div class="flex flex-col md:flex-row md:items-center gap-4">
+      <div class="flex gap-2 flex-1">
+        <select id="searchField" class="p-2 rounded border border-indigo-300 bg-white shadow w-48">
+          <option value="company">Company Name</option>
+          <option value="employer">Employer Name</option>
+          <option value="email">Email</option>
+        </select>
+        <input id="searchInput" type="text" placeholder="Search companies..." class="p-2 border border-indigo-300 rounded w-full shadow" />
+      </div>
+    </div>
+
+    <!-- Companies Table -->
+    <div class="overflow-x-auto bg-white rounded-lg shadow">
+      <table class="min-w-full text-sm">
+        <thead class="bg-indigo-100 text-indigo-700">
+          <tr>
+            <th class="px-4 py-3 text-left">Logo</th>
+            <th class="px-4 py-3 text-left">Company</th>
+            <th class="px-4 py-3 text-left">Employer</th>
+            <th class="px-4 py-3 text-left">Email</th>
+            <th class="px-4 py-3 text-left">Contact</th>
+            <th class="px-4 py-3 text-left">Jobs</th>
+            <th class="px-4 py-3 text-left">Credits</th>
+            <th class="px-4 py-3 text-left">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="companyTable" class="text-gray-700"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Preview Modal -->
+  <div id="modal" class="fixed inset-0 bg-black bg-opacity-40 hidden justify-center items-center z-50">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+      <h3 class="text-xl font-semibold text-indigo-600 mb-4">Company Details</h3>
+      <div class="space-y-2 text-gray-800">
+        <p><strong>Company:</strong> <span id="modalCompany"></span></p>
+        <p><strong>Employer:</strong> <span id="modalEmployer"></span></p>
+        <p><strong>Email:</strong> <span id="modalEmail"></span></p>
+        <p><strong>Contact:</strong> <span id="modalContact"></span></p>
+        <p><strong>Posted Jobs:</strong> <span id="modalJobs"></span></p>
+        <p><strong>Credits Left:</strong> <span id="modalCredits"></span></p>
+        <p><strong>Website:</strong> <span id="modalWebsite"></span></p>
+        <p><strong>Location:</strong> <span id="modalLocation"></span></p>
+        <div class="flex gap-2 pt-3">
+          <button onclick="adjustCredits(1)" class="bg-green-500 text-white px-3 py-1 rounded">+ Credit</button>
+          <button onclick="adjustCredits(-1)" class="bg-red-500 text-white px-3 py-1 rounded">- Credit</button>
+        </div>
+      </div>
+      <div class="mt-4 text-right">
+        <button onclick="closeModal()" class="bg-gray-300 hover:bg-gray-400 text-black px-4 py-1 rounded">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script -->
+  <script>
+    const companyTable = document.getElementById('companyTable');
+    const searchInput = document.getElementById('searchInput');
+    const searchField = document.getElementById('searchField');
+    const modal = document.getElementById('modal');
+
+    let currentIndex = -1;
+
+    const companies = [
+      {
+        logo: "https://logo.clearbit.com/google.com",
+        company: "Google",
+        employer: "Sundar Pichai",
+        email: "sundar@google.com",
+        contact: "9999999999",
+        jobs: 25,
+        credits: 3,
+        website: "https://www.google.com",
+        location: "Mountain View, CA"
+      },
+      {
+        logo: "https://logo.clearbit.com/microsoft.com",
+        company: "Microsoft",
+        employer: "Satya Nadella",
+        email: "satya@microsoft.com",
+        contact: "8888888888",
+        jobs: 18,
+        credits: 5,
+        website: "https://www.microsoft.com",
+        location: "Redmond, WA"
+      },
+      {
+        logo: "https://logo.clearbit.com/openai.com",
+        company: "OpenAI",
+        employer: "Sam Altman",
+        email: "sam@openai.com",
+        contact: "7777777777",
+        jobs: 10,
+        credits: 2,
+        website: "https://www.openai.com",
+        location: "San Francisco, CA"
+      }
+    ];
+
+    function renderCompanies(filter = '') {
+      const field = searchField.value;
+      const filtered = companies.filter(c => c[field].toLowerCase().includes(filter.toLowerCase()));
+      companyTable.innerHTML = '';
+      filtered.forEach((c, index) => {
+        companyTable.innerHTML += `
+          <tr class="border-t border-indigo-100 hover:bg-indigo-50">
+            <td class="px-4 py-3"><img src="${c.logo}" class="w-10 h-10 rounded-full"/></td>
+            <td class="px-4 py-3">${c.company}</td>
+            <td class="px-4 py-3">${c.employer}</td>
+            <td class="px-4 py-3 truncate max-w-[200px]">${c.email}</td>
+            <td class="px-4 py-3">${c.contact}</td>
+            <td class="px-4 py-3">${c.jobs}</td>
+            <td class="px-4 py-3">${c.credits}</td>
+            <td class="px-4 py-3">
+              <button onclick="openModal(${index})" class="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1 rounded text-sm">Preview</button>
+            </td>
+          </tr>`;
+      });
+    }
+
+    function openModal(index) {
+      const c = companies[index];
+      currentIndex = index;
+      document.getElementById("modalCompany").innerText = c.company;
+      document.getElementById("modalEmployer").innerText = c.employer;
+      document.getElementById("modalEmail").innerText = c.email;
+      document.getElementById("modalContact").innerText = c.contact;
+      document.getElementById("modalJobs").innerText = c.jobs;
+      document.getElementById("modalCredits").innerText = c.credits;
+      document.getElementById("modalWebsite").innerText = c.website;
+      document.getElementById("modalLocation").innerText = c.location;
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    }
+
+    function closeModal() {
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+
+    function adjustCredits(change) {
+      if (currentIndex >= 0) {
+        companies[currentIndex].credits += change;
+        if (companies[currentIndex].credits < 0) companies[currentIndex].credits = 0;
+        renderCompanies(searchInput.value);
+        openModal(currentIndex); // refresh modal data
+      }
+    }
+
+    function exportData() {
+      const csv = ["Company,Employer,Email,Contact,Jobs,Credits,Website,Location"];
+      companies.forEach(c => {
+        csv.push(`"${c.company}","${c.employer}","${c.email}","${c.contact}","${c.jobs}","${c.credits}","${c.website}","${c.location}"`);
+      });
+      const blob = new Blob([csv.join("\n")], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "companies.csv";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    searchInput.addEventListener('input', () => renderCompanies(searchInput.value));
+
+    renderCompanies();
+  </script>
+</body>
+</html>
